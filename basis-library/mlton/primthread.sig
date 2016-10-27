@@ -28,8 +28,7 @@ signature PRIM_THREAD =
         val copy: preThread -> Thread.t        
      end
 
-     type 'a t
-   
+         type 'a t 
    	 val myPriority: unit -> int
  
  end

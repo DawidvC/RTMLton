@@ -23,6 +23,15 @@ signature MLTON_THREAD =
             type t
          end
 
+    structure Queue:
+        sig
+            type 'a t
+
+            val new: unit -> 'a t
+            val enque: 'a t * 'a -> unit
+            val deque: 'a t -> 'a option
+        end
+
       type 'a t
 
       (* atomicSwitch f
@@ -55,6 +64,10 @@ signature MLTON_THREAD =
        * atomically.
        *)
       val switch: ('a t -> Runnable.t) -> 'a
+      
+      val spawn: (unit -> unit) -> unit
+      val run: unit -> unit
+
    end
 
 signature MLTON_THREAD_EXTRA =
