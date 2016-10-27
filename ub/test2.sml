@@ -9,7 +9,15 @@ val _ = print "test2 was running and is going to sleep\n"
 
 (*val _ = MLton.PrimThread.push("test again")*)
 
-val _ = MLton.Thread.spawn (fn () => print "test From Spawn\n *********** \n")
+fun fib n =
+  if n < 3 then 
+    1
+  else
+    fib (n-1) + fib (n-2)
+
+fun printfib n = print ( Int.toString (fib (n)) ^ "\n ************** \n" )
+
+val _ = MLton.Thread.spawn (fn () => printfib (10))
 
 val _ = MLton.Thread.spawn(fn () => print "test again function 2 from spawn \n ******* \n" )
 
