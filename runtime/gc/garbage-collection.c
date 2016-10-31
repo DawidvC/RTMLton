@@ -212,7 +212,7 @@ static void finish_for_gc(GC_state s) {
 
 #define LOCKFLAG MYASSERT(int, pthread_mutex_lock(&gcflag_lock), ==, 0)
 #define UNLOCKFLAG MYASSERT(int, pthread_mutex_unlock(&gcflag_lock), ==, 0)
-#define PAUSESELF do {s->threadPaused[PTHREAD_NUM]=1;s->GCRequested=TRUE;GCRequestedBy =PTHREAD_NUM;push(s,PTHREAD_NUM); pthread_kill(pthread_self(),SIGUSR1);} while(0)
+#define PAUSESELF do {s->threadPaused[PTHREAD_NUM]=1;s->GCRequested=TRUE;GCRequestedBy = GCRequestedBy == -1 ? PTHREAD_NUM : GCRequestedBy;push(s,PTHREAD_NUM); pthread_kill(pthread_self(),SIGUSR1);} while(0)
 #define REQUESTGC do { LOCKFLAG; setup_for_gc(s); UNLOCKFLAG;PAUSESELF; } while(0)
 #define COMPLETEGC do { LOCKFLAG;finish_for_gc(s); gcflag = -1; UNLOCKFLAG;s->GCRequested=FALSE; } while(0)
 /*
