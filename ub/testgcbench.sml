@@ -1,9 +1,39 @@
-(* at this point, basis is booting, once callFromCHandler
-   is set, the following SML code will execute via
-   the trampoline in posix thread 0. If you do not
-   see the print output, then the trampoline isnt working *)
-
-
+(*
+;  This is adapted from a benchmark written by John Ellis and Pete Kovac
+;  of Post Communications.
+;  It was modified by Hans Boehm of Silicon Graphics.
+;  It was translated into Scheme by William D Clinger of Northeastern Univ,
+;    and modified for compatibility with the Gambit benchmark suite.
+;  It was translated into Standard ML by William D Clinger.
+;  Last modified 6 July 1999.
+; 
+;       This is no substitute for real applications.  No actual application
+;       is likely to behave in exactly this way.  However, this benchmark was
+;       designed to be more representative of real applications than other
+;       Java GC benchmarks of which we are aware.
+;       It attempts to model those properties of allocation requests that
+;       are important to current GC techniques.
+;       It is designed to be used either to obtain a single overall performance
+;       number, or to give a more detailed estimate of how collector
+;       performance varies with object lifetimes.  It prints the time
+;       required to allocate and collect balanced binary trees of various
+;       sizes.  Smaller trees result in shorter object lifetimes.  Each cycle
+;       allocates roughly the same amount of memory.
+;       Two data structures are kept around during the entire process, so
+;       that the measured performance is representative of applications
+;       that maintain some live in-memory data.  One of these is a tree
+;       containing many pointers.  The other is a large array containing
+;       double precision floating point numbers.  Both should be of comparable
+;       size.
+; 
+;       The results are only really meaningful together with a specification
+;       of how much memory was used.  It is possible to trade memory for
+;       better time performance.  This benchmark should be run in a 32 MB
+;       heap, though we don't currently know how to enforce that uniformly.
+; In the Java version, this routine prints the heap size and the amount
+; of free memory.  There is no portable way to do this in Scheme; each
+; implementation needs its own version.
+*)
 
 datatype Tree = Dummy
               | Node of { left: Tree ref, right: Tree ref, i: int, j: int }
@@ -49,18 +79,19 @@ fun gcbench kStretchTreeDepth =
     
       (*  Build tree top down, assigning to older objects.  *)
       fun Populate (iDepth, Node { left=lr, right=rr, i, j }) =
-        if iDepth <= 0
-            then false
-            else let val iDepth = iDepth - 1
-                 in
-                 (
-                     lr := make_empty_node();
-                     rr := make_empty_node();
-                     Populate (iDepth, !lr);
-                     Populate (iDepth, !rr)
-                 )
-                 end
-      
+            if iDepth <= 0
+                then false
+                else let val iDepth = iDepth - 1
+                     in
+                     (
+                         lr := make_empty_node();
+                         rr := make_empty_node();
+                         Populate (iDepth, !lr);
+                         Populate (iDepth, !rr)
+                     )
+                     end
+         | Populate (_, Dummy) = (print "no"  ; false)
+
       (*  Build tree bottom-up  *)
       fun MakeTree iDepth =
         if iDepth <= 0
@@ -153,63 +184,14 @@ fun gcbench kStretchTreeDepth =
   in main()
   end
 
-(*
-fun main () =
-  run_benchmark ("gcbench",
-                 1,
-                 fn () => gcbench 18,
-                 fn (result) => true)
-*)
+
+
 structure Main =
 struct
   fun testit out = TextIO.output (out, "OK\n")
   fun doit () = gcbench 18
 end
 
-val _ = gcbench 18
+val _ = Main.doit ()
 
-(*fun printTime () = TextIO.output (TextIO.stdOut, "Time: " ^ Time.toString (Time.now())  ^  "\n")
-open MLton 
-open PrimThread
-open MLton.Thread
-
-val a = 9320
-
-
-fun fib n =
-  if n < 3 then 
-    1
-  else
-    fib (n-1) + fib (n-2)
-
-fun printfib n = print ( Int.toString (fib (n)) ^ "\n ************** \n" )
-
-
-(*val _ = MLton.Thread.spawn (fn () => printfib (10))*)
-
-(*val _ = MLton.Thread.spawn(fn () => gcbench 18)*)
-
-
-open OS.Process
-fun inf_sleep t= OS.Process.sleep t
-
-
-
-fun dogcbench () = (printTime(); gcbench(18); printTime())
-
-val rec loop =
-   fn 0 => ()
-    | n => (print (Int.toString n ^ "\n"); dogcbench(); loop (n - 1))
-
-val _ = loop 1
-
-
-val _ = PrimThread.setBooted()
-
-val _ = print "test2 was running and is going to sleep\n"
-fun pause () = (print "sleep\n"; inf_sleep (Time.fromSeconds 1)
-                ; PrimThread.gcSafePoint(); pause ())
-
-val _ = pause ()
-
-*)
+val _ = print "Done\n"
