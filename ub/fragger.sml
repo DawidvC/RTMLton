@@ -14,6 +14,7 @@ end
 
 fun doit kArraySize =
   let open Array
+            
             fun allocateArrays i ls kArraySize  =
                 if i < kArraySize
                 then 
@@ -32,6 +33,9 @@ fun doit kArraySize =
               in
                 allocateArrays 0 largeArray kArraySize 
               end
+            
+            val ls = fillHeap kArraySize
+            
 
             fun fragmentHeap arr i =
                 if i < kArraySize 
@@ -41,34 +45,31 @@ fun doit kArraySize =
 
             fun traverseList [] = []
                     | traverseList (x::xs)= traverseList xs
-                              
+            
+        fun allocateNewArray size = 
+            let
+                val (alloctime,arr2) = timeIt4 array(size,10)
+            
+                fun traverseArray j = 
+                    if j < (kArraySize)
+                        then ((if (j mod 1000) =0 
+                                then update(arr2, j, 11)
+                                else ());
+                                traverseArray (j+1))
+                        else ()
+
+            in
+                traverseArray 0;
+                print alloctime
+            end
+                  
                 
   in
-    let
-      val ls = fillHeap kArraySize
-
-      fun allocateNewArray size = 
-        let
-          val (alloctime,arr2) = timeIt4 array(size,10)
-          fun traverseArray j = 
-            if j < (kArraySize)
-                then ((if (j mod 1000) =0 
-                        then update(arr2, j, 11)
-                        else ());
-                     traverseArray (j+1))
-                 else ()
-
-        in
-          traverseArray 0;
-          print alloctime
-        end
-    in
         (*print ("done\n");*)
         fragmentHeap ls 0 ; 
         allocateNewArray 900000;  
         print(Int.toString(sub(Option.valOf(sub(ls,10001)),0)))
        (* traverseList ls*)
-    end
   end
 
 (* 433259 elements*)
